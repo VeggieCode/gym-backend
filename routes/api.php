@@ -1,0 +1,15 @@
+<?php
+
+use App\Http\Controllers\PlanController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/user', function (Request $request) {
+    return $request->user();
+})->middleware('auth:sanctum');
+
+Route::get('/planes', [PlanController::class, 'index']);
+
+Route::post('/planes', [PlanController::class, 'store']);
+
+Route::patch('/planes/{id}/archivar', [PlanController::class, 'archivar']);
