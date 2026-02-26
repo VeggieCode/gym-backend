@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PlanController;
+use App\Http\Controllers\RutinaController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -13,3 +14,5 @@ Route::get('/planes', [PlanController::class, 'index']);
 Route::post('/planes', [PlanController::class, 'store']);
 
 Route::patch('/planes/{id}/archivar', [PlanController::class, 'archivar']);
+
+Route::post('/rutinas', [RutinaController::class, 'store']);
