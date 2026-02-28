@@ -47,4 +47,44 @@ class EloquentRutinaRepository implements RutinaRepositoryInterface
             return $rutina;
         });
     }
+
+    public function obtenerTodas(): array
+    {
+        // Usamos eager loading ('with') para traer los ejercicios y evitar el problema de N+1
+        $modelos = EloquentRutina::with('ejercicios')->get();
+
+        return $modelos->map(function ($modelo) {
+            // Mapeamos los modelos de Eloquent de los ejercicios a entidades de dominio
+            $ejerciciosDominio = $modelo->ejercicios->map(function ($ejModelo) {
+                $ejercicio = new DomainEjercicio(
+                    null,
+                    $ejModelo->nombre,
+                    $ejModelo->series,
+                    $ejModelo->repeticiones
+                );
+                // Si tu entidad Ejercicio soporta ID, asígnalo aquí (opcional)
+                if (property_exists($ejercicio, 'id')) {
+                    $ejercicio->id = $ejModelo->id;
+                }
+                return $ejercicio;
+            })->toArray();
+
+            // Mapeamos el modelo principal a la entidad de Dominio Rutina
+            // Aseguramos que dias_asignados sea un array
+            $diasAsignados = is_string($modelo->dias_asignados)
+                ? json_decode($modelo->dias_asignados, true)
+                : $modelo->dias_asignados;
+
+            $rutina = new DomainRutina(
+                null,
+                nombre: $modelo->nombre,
+                diasAsignados: $diasAsignados,
+                ejercicios: $ejerciciosDominio
+            );
+
+            $rutina->id = $modelo->id;
+
+            return $rutina;
+        })->toArray();
+    }
 }

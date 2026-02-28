@@ -16,3 +16,4 @@ Route::post('/planes', [PlanController::class, 'store']);
 Route::patch('/planes/{id}/archivar', [PlanController::class, 'archivar']);
 
 Route::post('/rutinas', [RutinaController::class, 'store']);
+Route::get('/rutinas', [RutinaController::class, 'index']); // <- Nueva ruta

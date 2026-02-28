@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Application\UseCases\CrearRutinaUseCase;
+use App\Application\UseCases\ObtenerRutinasUseCase;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -32,5 +33,20 @@ class RutinaController extends Controller
             'message' => 'Rutina creada exitosamente',
             'data' => $rutina->toArray()
         ], 201);
+    }
+
+    public function index(ObtenerRutinasUseCase $useCase): JsonResponse
+    {
+        $rutinas = $useCase->ejecutar();
+
+        // Convertimos cada entidad de dominio a un array usando su método toArray()
+        $data = array_map(function ($rutina) {
+            return $rutina->toArray();
+        }, $rutinas);
+
+        return response()->json([
+            'success' => true,
+            'data' => $data
+        ], 200);
     }
 }
