@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Application\UseCases\ArchivarPlanUseCase;
 use App\Application\UseCases\CrearPlanUseCase;
 use App\Application\UseCases\ObtenerPlanesActivosUseCase;
+use App\Domain\Exceptions\AccesoDenegadoException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -44,18 +45,23 @@ class PlanController extends Controller
         // 2. Ejecutamos el caso de uso.
         // Si la Entidad falla, lanzará la DomainException.
         // Laravel la atrapará en bootstrap/app.php automáticamente.
-        $nuevoPlan = $useCase->ejecutar(
-            $request->input('nombre'),
-            $request->input('nivel'),
-            $request->input('precio')
-        );
+        try {
+            $nuevoPlan = $useCase->ejecutar(
+                $request->input('nombre'),
+                $request->input('precio'),
+                0,
+                $request->input('nivel'),
+            );
 
-        // 3. Si todo salió bien, devolvemos el éxito.
-        return response()->json([
-            'success' => true,
-            'message' => 'Plan creado exitosamente',
-            'data' => $nuevoPlan->toArray()
-        ], 201);
+            // 3. Si todo salió bien, devolvemos el éxito.
+            return response()->json([
+                'success' => true,
+                'message' => 'Plan creado exitosamente',
+                'data' => $nuevoPlan->toArray()
+            ], 201);
+        } catch (AccesoDenegadoException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getCode());
+        }
     }
 
     public function archivar(int $id, ArchivarPlanUseCase $useCase): JsonResponse

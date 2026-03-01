@@ -3,24 +3,28 @@
 namespace App\Application\UseCases;
 
 use App\Domain\Entities\Plan;
+use App\Domain\Exceptions\AccesoDenegadoException;
+use App\Domain\Repositories\AuthRepositoryInterface;
 use App\Domain\Repositories\PlanRepositoryInterface;
 
 class CrearPlanUseCase
 {
-    private PlanRepositoryInterface $repository;
+    public function __construct(private PlanRepositoryInterface $planRepository,
+                                private AuthRepositoryInterface $authRepository
+    ){}
 
-    public function __construct(PlanRepositoryInterface $repository)
+    public function ejecutar(string $nombre, float $precio, int $duracionMeses, string $nivel): Plan
     {
-        $this->repository = $repository;
-    }
+        // 1. Regla de Autorización: Obtenemos al usuario actual
+        $usuario = $this->authRepository->obtenerUsuarioActual();
 
-    public function ejecutar(string $nombre, string $nivel, float $precio): Plan
-    {
-        // 1. Creamos la entidad en memoria (El ID es null porque es nuevo).
-        // Si el precio es negativo, aquí saltará la excepción y se detendrá el proceso.
-        $plan = new Plan(null, $nombre, $nivel, $precio);
+        // 2. Si no hay usuario, o su rol no es 'dueño', lanzamos excepción
+        if (!$usuario || $usuario->rol !== 'dueño') {
+            throw new AccesoDenegadoException();
+        }
 
-        // 2. Le decimos a la infraestructura que lo guarde físicamente.
-        return $this->repository->guardar($plan);
+        // 3. Lógica normal del caso de uso...
+        $plan = new Plan(null, $nombre, $nivel, $precio );
+        return $this->planRepository->guardar($plan);
     }
 }
