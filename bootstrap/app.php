@@ -28,4 +28,13 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 400); // 400 Bad Request
             }
         });
-    })->create();
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->shouldRenderJsonWhen(function (\Illuminate\Http\Request $request, \Throwable $e) {
+            if ($request->is('api/*')) {
+                return true;
+            }
+            return $request->expectsJson();
+        });
+    })
+    ->create();

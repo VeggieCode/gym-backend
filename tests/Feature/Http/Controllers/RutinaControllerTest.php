@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase; // Importante: Aquí SÍ usamos el TestCase de Laravel
 
 class RutinaControllerTest extends TestCase
@@ -27,6 +29,11 @@ class RutinaControllerTest extends TestCase
     }
     public function test_puede_crear_una_rutina_completa_via_api(): void
     {
+        // 👉 LA MAGIA: Simulamos que un usuario está logueado
+        Sanctum::actingAs(
+            User::factory()->create(['role' => 'cliente']),
+            ['*']
+        );
         // 1. Payload simulando una petición HTTP desde Android o React
         $payload = [
             "nombre" => "Hipertrofia Avanzada",
@@ -56,9 +63,27 @@ class RutinaControllerTest extends TestCase
         ]);
     }
 
+    public function test_rechaza_crear_rutina_si_no_hay_sesion(): void
+    {
+        // NO llamamos a Sanctum::actingAs()
+        $payload = ["nombre" => "Secreta", "dias_asignados" => ["Lunes"], "ejercicios" => [["nombre" => "Press Militar", "series" => 4, "repeticiones" => 8],
+            ["nombre" => "Elevaciones Laterales", "series" => 3, "repeticiones" => 15]]];
+
+        $response = $this->postJson('/api/rutinas', $payload);
+
+        // Debería rebotarnos en la puerta (401 Unauthorized)
+        $response->assertStatus(401);
+    }
+
     public function test_api_rechaza_payload_incompleto(): void
     {
-        // Payload inválido (faltan los ejercicios)
+        // 1. Simulamos un usuario logueado para poder pasar el Middleware
+        Sanctum::actingAs(
+            User::factory()->create(['role' => 'cliente']),
+            ['*']
+        );
+
+        // 2. Payload inválido (faltan los ejercicios)
         $payload = [
             "nombre" => "Rutina Incompleta",
             "dias_asignados" => ["Lunes"]
@@ -66,7 +91,7 @@ class RutinaControllerTest extends TestCase
 
         $response = $this->postJson('/api/rutinas', $payload);
 
-        // Laravel debe atrapar esto en el $request->validate() del controlador
+        // 3. Como ya pasamos la seguridad, el Controlador debe atrapar la falta de datos
         $response->assertStatus(422) // Unprocessable Entity
         ->assertJsonValidationErrors(['ejercicios']);
     }
