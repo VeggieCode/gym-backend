@@ -1,0 +1,45 @@
+name: Laravel Backend CI
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  laravel-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Configurar PHP
+        uses: shivammathur/setup-php@15c43e89cdef867065b0213be354c2841860869e
+        with:
+          php-version: '8.5.3' # Actualizado para Laravel moderno
+
+      - name: Copiar archivo .env
+        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+
+      - name: Instalar Dependencias (Composer)
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Generar App Key
+        run: php artisan key:generate
+
+      - name: Asignar permisos de directorios
+        run: chmod -R 777 storage bootstrap/cache
+
+      - name: Crear Base de Datos de Prueba (SQLite)
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+
+      - name: Ejecutar pruebas de Clean Architecture (PHPUnit/Pest)
+        env:
+          # Forzamos a Laravel a usar SQLite en memoria/archivo para las pruebas,
+          # así no necesitamos levantar un contenedor de MySQL en la nube.
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+        run: php artisan test
