@@ -1,0 +1,135 @@
+classDiagram
+    %% Definición de Enumeradores (Value Objects)
+    class EstadoMembresia {
+        <<enumeration>>
+        ACTIVO
+        INACTIVO
+        VENCIDO
+        CANCELADO
+    }
+    class EstadoSesion {
+        <<enumeration>>
+        EN_PROGRESO
+        FINALIZADA
+    }
+    class RolUsuario {
+        <<enumeration>>
+        CLIENTE
+        ENTRENADOR
+        DUEÑO
+        RECEPCIONISTA
+    }
+
+    %% Jerarquía de Usuarios
+    class Usuario {
+        <<abstract>>
+        #UUID id
+        #String nombre
+        #String correo
+        #String passwordHash
+        #RolUsuario rol
+        +autenticar(password: String): boolean
+    }
+
+    class Cliente {
+        -List~Usuario~ seguidos
+        -Entrenador entrenadorAsignado
+        +registrarDatosCorporales(peso: float, altura: float, grasa: float): void
+        +seguirUsuario(u: Usuario): void
+        +solicitarCambioEntrenador(): Solicitud
+    }
+
+    class Entrenador {
+        -int limiteClientes
+        -List~Cliente~ clientesAsignados
+        +asignarRutina(c: Cliente, r: Rutina): void
+        +puedeAceptarCliente(): boolean
+    }
+
+    Usuario <|-- Cliente
+    Usuario <|-- Entrenador
+
+    %% Agregado: Evolución Física
+    class DatosCorporales {
+        <<Value Object>>
+        -LocalDate fecha
+        -float peso
+        -float altura
+        -float porcentajeGrasa
+        +calcularIMC(): float
+    }
+    Cliente *-- DatosCorporales
+
+    %% Agregado: Membresía y Pagos
+    class Membresia {
+        <<Aggregate Root>>
+        -UUID id
+        -LocalDate fechaInicio
+        -LocalDate fechaVencimiento
+        -EstadoMembresia estado
+        +registrarPago(p: Pago): void
+        +verificarVigencia(): boolean
+        +cancelar(): void
+    }
+
+    class Pago {
+        -UUID idPago
+        -float monto
+        -LocalDateTime fecha
+        -String metodoPago
+        +esValido(): boolean
+    }
+
+    Cliente "1" --> "0..1" Membresia : posee
+    Membresia "1" *-- "*" Pago : historial
+
+    %% Agregado: Entrenamiento (Diseño)
+    class Rutina {
+        <<Aggregate Root>>
+        -UUID id
+        -String nombre
+        -String dificultad
+        -boolean esPublica
+        -Usuario creador
+        +iniciarSesion(): SesionEntrenamiento
+        +clonar(): Rutina
+    }
+
+    class ConfiguracionEjercicio {
+        <<Value Object>>
+        -int seriesObjetivo
+        -int repeticionesSugeridas
+        -int descansoSegundos
+    }
+
+    class Ejercicio {
+        -UUID id
+        -String nombre
+        -String grupoMuscular
+        -String urlVideo
+    }
+
+    Rutina *-- ConfiguracionEjercicio
+    ConfiguracionEjercicio --> Ejercicio
+
+    %% Agregado: Entrenamiento (Ejecución)
+    class SesionEntrenamiento {
+        <<Aggregate Root>>
+        -UUID id
+        -LocalDateTime fechaInicio
+        -LocalDateTime fechaFin
+        -EstadoSesion estado
+        +agregarSerie(ejercicioId: UUID, peso: float, reps: int, clasificacion: String): void
+        +finalizarSesion(): void
+    }
+
+    class SerieRealizada {
+        <<Entity>>
+        -float pesoLevantado
+        -int repeticionesHechas
+        -String desempenoIntencion
+    }
+
+    Cliente "1" --> "*" SesionEntrenamiento : realiza
+    SesionEntrenamiento *-- SerieRealizada
+    SesionEntrenamiento --> Rutina : basada en
