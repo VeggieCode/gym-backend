@@ -270,16 +270,213 @@ If Vite changes are not detected:
 
 ---
 
-## 🧪 Testing
+## 💻 PhpStorm Recommendations
 
-Run the test suite:
+If you use PhpStorm on Windows with a project running in WSL:
+
+### Open the project from WSL
+
+Open the project located in your WSL filesystem, for example:
 ```bash
-./vendor/bin/sail artisan test
+~/projects/gym-backend
 ```
-If you also have a local PHP environment configured correctly, you may use:
+Avoid opening the project from `C:\...` or `/mnt/c/...`.
+
+### Configure the terminal
+
+Set PhpStorm's integrated terminal to use **WSL / Ubuntu** so project commands run in the correct environment.
+
+### Configure PHP Interpreter for Sail
+
+For Laravel Sail, the most reliable option is to configure PhpStorm to use the **Docker Compose PHP interpreter** from the `laravel.test` service.
+
+Recommended configuration:
+
+1. Open **Settings / Preferences**
+2. Go to **PHP**
+3. In **CLI Interpreter**, click **...**
+4. Add a new interpreter using **Docker Compose**
+5. Select the project's `compose.yaml`
+6. Choose the service:
+   - `laravel.test`
+7. Use the PHP executable inside the container:
+   - `php`
+
+This allows PhpStorm features such as:
+
+- code inspections with the container PHP version
+- Artisan command execution
+- PHPUnit execution
+- framework-aware tooling using the same runtime as Sail
+
+> **Recommendation:** prefer the Sail/Docker Compose interpreter over a Windows PHP interpreter.  
+> If your team uses WSL PHP instead, keep that choice consistent across PHP, Composer, and terminal configuration.
+
+### Configure Path Mappings
+
+When using Docker-based debugging, path mappings must be correct.
+
+For this project, the container mounts the repository to:
+```text
+/var/www/html
+```
+So the main mapping should be:
+
+- **Local project path** → your project in WSL / PhpStorm
+- **Remote path** → `/var/www/html`
+
+If path mappings are wrong, breakpoints may be ignored even when Xdebug is connected.
+
+### Configure Composer
+
+Make sure Composer uses the same PHP interpreter/environment as the project.
+
+Recommended:
+
+1. Go to **Settings / Preferences**
+2. Open **PHP > Composer**
+3. Select the same interpreter configured for Sail
+
+Avoid mixing:
+
+- project files in WSL
+- Composer from Windows
+- PHP from another environment
+
+### Configure PHPUnit
+
+To run tests from PhpStorm using Sail:
+
+1. Go to **Settings / Preferences**
+2. Open **PHP > Test Frameworks**
+3. Add a new **PHPUnit** configuration
+4. Use the same Docker Compose interpreter from `laravel.test`
+5. Use Composer autoload from:
+   ```text
+   /var/www/html/vendor/autoload.php
+   ```
+
+This keeps tests aligned with the Sail container runtime.
+
+### Configure Node.js
+
+If you run Vite from WSL, make sure PhpStorm uses the same WSL Node.js installation, or run frontend commands from the WSL terminal.
+
+### Configure line endings
+
+Use **LF** line endings for shell-related files when possible. Mixed line endings can break scripts and generate confusing behavior in WSL.
+
+### Configure Xdebug for Laravel Sail
+
+This project's Sail configuration already includes Xdebug-related environment support in Docker Compose:
+
+- `SAIL_XDEBUG_MODE`
+- `SAIL_XDEBUG_CONFIG`
+
+To enable debugging, add these values to your `.env`:
+```dotenv
+SAIL_XDEBUG_MODE=debug
+SAIL_XDEBUG_CONFIG=client_host=host.docker.internal
+```
+Then rebuild or restart Sail:
 ```bash
-composer test
+./vendor/bin/sail down
+./vendor/bin/sail up -d
 ```
+If needed, rebuild the image:
+```bash
+./vendor/bin/sail build --no-cache
+./vendor/bin/sail up -d
+```
+
+### Configure PhpStorm Debugger
+
+In PhpStorm:
+
+1. Go to **Settings / Preferences**
+2. Open **PHP > Debug**
+3. Set the **Xdebug** debug port to:
+   ```text
+   9003
+   ```
+4. Enable:
+    - **Can accept external connections**
+5. Start **Listen for PHP Debug Connections**
+
+Recommended additional checks:
+
+- the selected server uses correct path mappings
+- the project is opened from the WSL path
+- Docker Desktop is running
+- Sail is up
+
+### Configure a PHP Server in PhpStorm
+
+To make breakpoints resolve correctly:
+
+1. Go to **Settings / Preferences**
+2. Open **PHP > Servers**
+3. Add a new server
+
+Recommended values:
+
+- **Name:** `laravel.test`
+- **Host:** `localhost`
+- **Port:** `80`  
+  *(or your custom `APP_PORT` if different)*
+- **Debugger:** `Xdebug`
+- Enable **Use path mappings**
+
+Suggested path mapping:
+
+- local project root → `/var/www/html`
+
+> If you changed `APP_PORT` in `.env`, use that port instead of `80`.
+
+### How to Start a Debug Session
+
+Typical flow:
+
+1. Make sure Sail is running:
+   ```bash
+   ./vendor/bin/sail up -d
+   ```
+2. Make sure PhpStorm is listening for debug connections
+3. Trigger the request from:
+    - browser
+    - Postman
+    - API client
+    - PHPUnit test
+4. If needed, use a browser extension to enable Xdebug session triggering
+
+For API debugging, this usually means:
+
+- place a breakpoint in a controller, middleware, service, or exception handler
+- send the HTTP request
+- let PhpStorm catch the incoming Xdebug connection
+
+### If breakpoints are not being hit
+
+Check all of the following:
+
+- `SAIL_XDEBUG_MODE=debug` is present in `.env`
+- `SAIL_XDEBUG_CONFIG=client_host=host.docker.internal` is present in `.env`
+- Sail was restarted after changing `.env`
+- PhpStorm is listening for debug connections
+- the debug port is `9003`
+- the server configuration uses correct path mappings
+- the local project was opened from WSL, not from `C:\...`
+- the request is actually executed through the Sail container
+
+### If file watching is unreliable
+
+If Vite changes are not detected:
+
+- confirm the project is inside the WSL filesystem
+- do not use `/mnt/c/...`
+- run `npm run dev` from WSL
+- verify Docker, WSL, and PhpStorm all point to the same environment
+
 ---
 
 ## 🧯 Troubleshooting
