@@ -1,128 +1,122 @@
-Instalación de Laravel Sail
+# Gym Backend (Laravel 12)
 
-Laravel Sail (que funciona sobre Docker) es la mejor manera de trabajar hoy en día. Te da un entorno con PHP, MySQL y
-todo lo necesario sin tener que instalar "basura" directamente en tu sistema operativo.
+A robust backend API for a gym management system, built with Laravel 12. It provides endpoints for authentication, routines, and subscription plans management.
 
-Además, el script oficial de instalación de Laravel siempre descarga la versión más reciente y estable (Laravel 12 en
-este caso) por defecto.
+## 🚀 Tech Stack
 
-Aquí tienes el paso a paso exacto para levantar tu gym-backend usando Sail.
+- **Language:** PHP ^8.2
+- **Framework:** [Laravel 12](https://laravel.com)
+- **Authentication:** Laravel Sanctum
+- **Database:** MySQL / SQLite
+- **Environment:** Laravel Sail (Docker)
+- **Package Manager:** Composer & NPM
+- **Testing:** PHPUnit
 
-1. Requisito Previo
-   Asegúrate de tener Docker Desktop instalado y abierto en tu computadora (debe estar corriendo en segundo plano).
+## 📋 Requirements
 
-2. Ejecutar el script de instalación
-   Abre tu terminal (si estás en Windows, te recomiendo usar WSL2 con Ubuntu, o la terminal de Git Bash/PowerShell) y
-   ejecuta el siguiente comando.
+Before starting, ensure you have the following installed:
+- [Docker Desktop](https://www.docker.com/products/docker-desktop)
+- WSL2 (If using Windows)
+- [Composer](https://getcomposer.org/) (optional, if running locally without Docker)
+- [Node.js & NPM](https://nodejs.org/)
 
-Este script descargará la imagen de Docker, configurará Laravel 12 y preparará tu base de datos MySQL automáticamente:
+## 🛠️ Setup & Installation
 
-Bash
-curl -s "https://laravel.build/gym-backend" | bash
-(Nota: Este proceso puede tardar unos minutos la primera vez, ya que tiene que descargar los contenedores de Docker de
-internet).
+The recommended way to run this project is using **Laravel Sail**.
 
-3. Levantar los contenedores
-   Una vez que termine la instalación, el script te pedirá tu contraseña de administrador (para configurar los permisos)
-   y te indicará que entres a la carpeta.
-
-Entra al directorio de tu nuevo proyecto y levanta Sail en "modo desprendido" (background) con -d:
-
-Bash
+### 1. Clone the repository
+```bash
+git clone <repository-url> gym-backend
 cd gym-backend
+```
+
+### 2. Configure Docker & WSL (Windows Users)
+- Open Docker Desktop.
+- Go to **Settings > Resources > WSL Integration**.
+- Enable integration with your default WSL distro (e.g., Ubuntu).
+
+### 3. Install Dependencies
+If you have PHP and Composer installed locally:
+```bash
+composer install
+npm install
+```
+Otherwise, you can use a temporary container to install dependencies:
+```bash
+docker run --rm \
+    -u "$(id -u):$(id -g)" \
+    -v "$(pwd):/var/www/html" \
+    -w /var/www/html \
+    laravelsail/php84-composer:latest \
+    composer install --ignore-platform-reqs
+```
+
+### 4. Environment Configuration
+Copy the `.env.example` file to `.env`:
+```bash
+cp .env.example .env
+```
+Update your `.env` file with your database credentials and other configurations.
+
+### 5. Start the Application (Sail)
+```bash
 ./vendor/bin/sail up -d
-¡Y listo! Ya tienes Laravel 12 corriendo.
+```
+Your application will be available at: [http://localhost](http://localhost)
 
-Tu aplicación está viva en: http://localhost
+### 6. Finalize Setup
+Run migrations and generate the application key:
+```bash
+./vendor/bin/sail artisan key:generate
+./vendor/bin/sail artisan migrate
+```
 
-Tienes una base de datos MySQL corriendo en el puerto 3306.
+---
 
-4. Un pequeño "Truco" (Alias)
-   Para no tener que escribir ./vendor/bin/sail cada vez que quieras ejecutar un comando de Artisan (como crear
-   migraciones o controladores), te recomiendo configurar este alias en tu terminal:
+## 📜 Available Scripts
 
-Bash
-alias sail='sh $([ -f sail ] && echo sail || echo vendor/bin/sail)'
-Así, en lugar de escribir php artisan make:controller, ahora escribirás sail artisan make:controller, y el comando se
-ejecutará dentro de tu contenedor de Docker.
+Managed via `composer.json`:
 
-Paso 1: Preparar Docker y WSL
-Antes de tirar código, Docker y Ubuntu deben estar hablando el mismo idioma.
+| Script | Description |
+| :--- | :--- |
+| `composer setup` | Install dependencies, copy `.env`, generate key, and run migrations. |
+| `composer dev` | Start the development server with Pail, Queue, and Vite. |
+| `composer test` | Clear configuration and run PHPUnit tests. |
+| `./vendor/bin/sail artisan ...` | Run any Laravel Artisan command inside the Docker container. |
 
-Abre Docker Desktop en Windows.
+---
 
-Ve a la tuerca de configuración (Settings) > Resources > WSL Integration.
+## 📂 Project Structure
 
-Asegúrate de que la opción "Enable integration with my default WSL distro" esté activa y que el "switch" al lado de tu
-distribución de Ubuntu esté encendido.
+- `app/Http/Controllers`: API Controllers (Auth, Plans, Rutinas).
+- `app/Models`: Eloquent Models (User, etc.).
+- `app/Domain`: Domain logic and custom exceptions.
+- `database/migrations`: Database schema definitions.
+- `routes/api.php`: Main API route definitions.
+- `tests/`: Feature and Unit tests.
 
-Aplica y reinicia Docker Desktop si es necesario.
+---
 
-Paso 2: Crear el proyecto Laravel 12 desde WSL
-Regla de oro: Nunca crees ni guardes proyectos de WSL en el disco de Windows (ej. /mnt/c/Users/... o C:\...). El
-rendimiento será terrible. Siempre trabaja dentro del sistema de archivos nativo de Linux (/home/...).
+## 🔑 Environment Variables
 
-Abre tu terminal de Ubuntu (puedes buscar "Ubuntu" en el menú de inicio de Windows 11).
+Key variables in `.env`:
+- `APP_KEY`: Application encryption key.
+- `DB_CONNECTION`: `sqlite` (default) or `mysql`.
+- `DB_DATABASE`: Database name.
+- `APP_URL`: Base URL (default: `http://localhost`).
 
-Ve a tu directorio de usuario en Linux:
+---
 
-Bash
-cd ~
-Ejecuta el script oficial de Laravel (esto descargará la última versión, Laravel 12):
+## 🧪 Testing
 
-Bash
-curl -s "https://laravel.build/gym-backend" | bash
-(Te pedirá tu contraseña de Ubuntu en algún momento para ajustar permisos).
+Run the test suite using PHPUnit:
+```bash
+./vendor/bin/sail artisan test
+# OR
+composer test
+```
 
-Paso 3: Levantar Laravel Sail
-Una vez que el script termine, entra a la carpeta e inicia los contenedores en segundo plano (-d para detached):
+---
 
-Bash
-cd gym-backend
-./vendor/bin/sail up -d
-¡Boom! Laravel 12 ya está corriendo en http://localhost.
-
-Paso 4: Configurar PhpStorm (La integración clave)
-
-1. Abrir el proyecto correctamente:
-
-Abre PhpStorm.
-
-Haz clic en Open.
-
-En la barra de rutas arriba, escribe la ruta de red de WSL. Usualmente es: \\wsl$\Ubuntu\home\tu_usuario\gym-backend (o
-\\wsl.localhost\Ubuntu\home\...).
-
-Selecciona la carpeta y ábrela. PhpStorm te preguntará si confías en el proyecto; dile que sí.
-
-2. Configurar el Intérprete de PHP (Para que funcione el autocompletado y los tests):
-
-En PhpStorm, ve a File > Settings (o presiona Ctrl + Alt + S).
-
-Navega a PHP (bajo Languages & Frameworks).
-
-En la sección CLI Interpreter, haz clic en los tres puntos ... a la derecha.
-
-Haz clic en el símbolo + y elige From Docker, Vagrant, VM, WSL, Remote...
-
-Selecciona la opción Docker Compose.
-
-En Server, elige tu conexión de Docker (suele autodetectarla).
-
-En Configuration file(s), asegúrate de que apunte a tu archivo docker-compose.yml (PhpStorm debería detectarlo
-automáticamente).
-
-En Service, selecciona laravel.test (este es el nombre oficial del contenedor que ejecuta PHP en Sail).
-
-Haz clic en OK. PhpStorm se conectará al contenedor y detectará la versión de PHP (probablemente PHP 8.3 u 8.4 para
-Laravel 12). Haz clic en Apply y OK.
-
-3. Configurar la Terminal de PhpStorm:
-   Para no tener que salir de PhpStorm al ejecutar comandos:
-
-Ve a Settings > Tools > Terminal.
-
-En Shell path, escribe: wsl.exe -d Ubuntu
-
-Ahora, cuando abras la terminal integrada (Alt + F12), estarás directamente en tu entorno de Linux listo para usar
-./vendor/bin/sail artisan.
+## 📄 License
+This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
