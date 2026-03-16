@@ -8,4 +8,6 @@ interface RutinaRepositoryInterface {
     public function guardar(DomainRutina $rutina): DomainRutina;
 
     public function obtenerTodas(): array;
+
+    public function buscarPorId(int $id): ?DomainRutina;
 }

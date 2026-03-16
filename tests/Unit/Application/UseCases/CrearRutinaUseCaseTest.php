@@ -3,6 +3,7 @@
 namespace Tests\Unit\Application\UseCases;
 
 use App\Domain\Entities\Usuario;
+use App\Domain\Enums\TipoRegistroEjercicio;
 use App\Domain\Repositories\AuthRepositoryInterface;
 use PHPUnit\Framework\TestCase;
 use App\Application\UseCases\CrearRutinaUseCase;
@@ -31,7 +32,11 @@ class CrearRutinaUseCaseTest extends TestCase
         $useCase = new CrearRutinaUseCase($mockRepo, $mockAuthRepo);
 
         $datosEjercicios = [
-            ['nombre' => 'Dominadas', 'series' => 4, 'repeticiones' => 10]
+            [
+                'nombre' => 'Dominadas',
+                'grupo_muscular' => 'core',
+                'tipo_registro' => TipoRegistroEjercicio::PESO_REPETICIONES
+            ]
         ];
 
         $rutinaGuardada = $useCase->ejecutar("Espalda", ["Miércoles"], $datosEjercicios);

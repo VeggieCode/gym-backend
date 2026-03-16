@@ -4,13 +4,14 @@ namespace App\Application\UseCases;
 
 use App\Domain\Entities\Rutina;
 use App\Domain\Entities\Ejercicio;
+use App\Domain\Enums\TipoRegistroEjercicio;
 use App\Domain\Exceptions\AccesoDenegadoException;
 use App\Domain\Repositories\AuthRepositoryInterface;
 use App\Domain\Repositories\RutinaRepositoryInterface;
 
 class CrearRutinaUseCase
 {
-    public function __construct(private RutinaRepositoryInterface $repository, private AuthRepositoryInterface $authRepository) {}
+    public function __construct(private readonly RutinaRepositoryInterface $repository, private readonly AuthRepositoryInterface $authRepository) {}
 
     /**
      * @throws AccesoDenegadoException
@@ -25,19 +26,17 @@ class CrearRutinaUseCase
 
         $ejerciciosPuros = [];
 
+
         // Convertimos los arrays crudos en Entidades de Dominio
         foreach ($datosEjercicios as $dato) {
             $ejerciciosPuros[] = new Ejercicio(
-                null,
-                $dato['nombre'],
-                $dato['series'],
-                $dato['repeticiones']
+                id: null,
+                nombre: $dato['nombre'], grupoMuscular: $dato['grupo_muscular'], tipoRegistro: $dato['tipo_registro'] ?? TipoRegistroEjercicio::PESO_REPETICIONES,
             );
         }
 
         // Construimos la Raíz de Agregado.
-        // ¡Si la lista viene vacía, Rutina arrojará la excepción aquí!
-        $rutina = new Rutina(null, $nombre, $diasAsignados, $ejerciciosPuros);
+        $rutina = new Rutina(id: null, nombre: $nombre, diasAsignados: $diasAsignados, usuarioId: $usuario->id, ejercicios: $ejerciciosPuros);
 
         return $this->repository->guardar($rutina);
     }
