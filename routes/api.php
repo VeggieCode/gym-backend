@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\EntrenamientoController;
 use App\Http\Controllers\PlanController;
 use App\Http\Controllers\RutinaController;
 use Illuminate\Http\Request;
@@ -32,4 +33,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/planes', [PlanController::class, 'index']);
     Route::post('/planes', [PlanController::class, 'store']);
     Route::patch('/planes/{id}/archivar', [PlanController::class, 'archivar']);
+
+    Route::post('/entrenamientos/iniciar', [EntrenamientoController::class, 'iniciar']);
 });

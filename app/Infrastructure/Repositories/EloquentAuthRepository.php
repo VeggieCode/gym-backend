@@ -51,7 +51,7 @@ class EloquentAuthRepository implements AuthRepositoryInterface
             $user->id,
             $user->name,
             $user->email,
-            $user->role
+            rol:$user->role
         );
     }
 }
