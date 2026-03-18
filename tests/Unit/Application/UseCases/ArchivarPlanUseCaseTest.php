@@ -60,6 +60,9 @@ class ArchivarPlanUseCaseTest extends TestCase
 
         // 3. Ejecutamos
         $this->useCase->ejecutar(100);
+
+        $this->assertFalse($planEncontrado->activo);
+        $this->assertEquals(100, $planEncontrado->id);
     }
 
 }

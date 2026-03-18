@@ -18,8 +18,14 @@ class RutinaController extends Controller
             'dias_asignados.*' => 'string', // Cada elemento debe ser string
             'ejercicios' => 'required|array',
             'ejercicios.*.nombre' => 'required|string',
-            'ejercicios.*.series' => 'required|integer',
-            'ejercicios.*.repeticiones' => 'required|integer',
+            'ejercicios.*.grupo_muscular' => 'required|string',
+            'ejercicios.*.tipo_registro' => 'string',
+
+            'ejercicios.*.series_objetivo' => 'present|array',
+            'ejercicios.*.series_objetivo.*.peso' => 'nullable|numeric',
+            'ejercicios.*.series_objetivo.*.repeticiones' => 'nullable|integer',
+            'ejercicios.*.series_objetivo.*.tiempo_segundos' => 'nullable|integer',
+            'ejercicios.*.series_objetivo.*.distancia_metros' => 'nullable|numeric'
         ]);
 
         $rutina = $useCase->ejecutar(

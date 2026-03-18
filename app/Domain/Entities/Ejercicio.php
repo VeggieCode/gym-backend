@@ -2,25 +2,34 @@
 
 namespace App\Domain\Entities;
 
+use App\Domain\Enums\TipoRegistroEjercicio;
+use App\Domain\ValueObjects\SerieObjetivo;
 use InvalidArgumentException;
 
-class Ejercicio
+readonly class Ejercicio
 {
     public ?int $id;
     public string $nombre;
-    public int $series;
-    public int $repeticiones;
+    public ?string $grupoMuscular;
+    public TipoRegistroEjercicio $tipoRegistro;
+    public array $seriesObjetivo;
 
-    public function __construct(?int $id, string $nombre, int $series, int $repeticiones)
+    public function __construct(
+        ?int $id, string $nombre, ?string $grupoMuscular, TipoRegistroEjercicio $tipoRegistro = TipoRegistroEjercicio::PESO_REPETICIONES, array $seriesObjetivo = [])
     {
-        if ($series <= 0 || $repeticiones <= 0) {
-            throw new InvalidArgumentException("Las series y repeticiones de '$nombre' deben ser mayores a cero.");
+        if ($grupoMuscular === '') {
+            throw new InvalidArgumentException("El grupo muscular de '$nombre' no puede estar vacío.");
         }
-
         $this->id = $id;
         $this->nombre = $nombre;
-        $this->series = $series;
-        $this->repeticiones = $repeticiones;
+        $this->tipoRegistro = $tipoRegistro;
+        $this->grupoMuscular = $grupoMuscular;
+        $this->seriesObjetivo = $seriesObjetivo;
+    }
+
+    public function agregarSerieObjetivo(SerieObjetivo $serie): void
+    {
+        $this->seriesObjetivo[] = $serie;
     }
 
     public function toArray(): array
@@ -28,8 +37,8 @@ class Ejercicio
         return [
             'id' => $this->id,
             'nombre' => $this->nombre,
-            'series' => $this->series,
-            'repeticiones' => $this->repeticiones
+            'tipoRegistro' => $this->tipoRegistro->value,
+            'grupoMuscular' => $this->grupoMuscular
         ];
     }
 }

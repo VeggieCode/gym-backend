@@ -20,7 +20,6 @@ class RutinaControllerTest extends TestCase
         // Obtenemos el nombre de la base de datos física (o en memoria)
         $nombreBaseDatos = \DB::connection()->getDatabaseName();
 
-        // Imprimimos en la consola para verlo con nuestros propios ojos
         dump('Conexión actual: ' . $conexionActiva);
         dump('Base de datos: ' . $nombreBaseDatos);
 
@@ -29,7 +28,7 @@ class RutinaControllerTest extends TestCase
     }
     public function test_puede_crear_una_rutina_completa_via_api(): void
     {
-        // 👉 LA MAGIA: Simulamos que un usuario está logueado
+        // Simulamos que un usuario está logueado
         Sanctum::actingAs(
             User::factory()->create(['role' => 'cliente']),
             ['*']
@@ -39,8 +38,8 @@ class RutinaControllerTest extends TestCase
             "nombre" => "Hipertrofia Avanzada",
             "dias_asignados" => ["Lunes", "Jueves"],
             "ejercicios" => [
-                ["nombre" => "Press Militar", "series" => 4, "repeticiones" => 8],
-                ["nombre" => "Elevaciones Laterales", "series" => 3, "repeticiones" => 15]
+                ["nombre" => "Press Militar", "grupo_muscular" => "Pecho"],
+                ["nombre" => "Elevaciones Laterales", "grupo_muscular" => "Pecho"]
             ]
         ];
 
@@ -59,7 +58,7 @@ class RutinaControllerTest extends TestCase
 
         $this->assertDatabaseHas('ejercicios', [
             'nombre' => 'Press Militar',
-            'series' => 4
+            'grupo_muscular' => 'Pecho'
         ]);
     }
 
@@ -83,7 +82,6 @@ class RutinaControllerTest extends TestCase
             ['*']
         );
 
-        // 2. Payload inválido (faltan los ejercicios)
         $payload = [
             "nombre" => "Rutina Incompleta",
             "dias_asignados" => ["Lunes"]
