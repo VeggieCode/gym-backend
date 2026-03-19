@@ -29,7 +29,8 @@ class Rutina extends Model
         // belongsToMany para indicar la relación M:N
         // withPivot('orden') nos trae ese dato extra de la tabla intermedia
         return $this->belongsToMany(Ejercicio::class, 'ejercicio_rutina')
-            ->withPivot('orden')->orderBy('pivot_orden', 'asc');
+            ->withPivot('orden', 'series_objetivo')
+            ->orderBy('pivot_orden', 'asc');
     }
 
     public function user(): BelongsTo

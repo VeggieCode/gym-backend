@@ -3,17 +3,19 @@
 namespace App\Domain\Entities;
 
 use App\Domain\Enums\TipoRegistroEjercicio;
+use App\Domain\ValueObjects\SerieObjetivo;
 use InvalidArgumentException;
 
-class Ejercicio
+readonly class Ejercicio
 {
     public ?int $id;
     public string $nombre;
     public ?string $grupoMuscular;
     public TipoRegistroEjercicio $tipoRegistro;
+    public array $seriesObjetivo;
 
     public function __construct(
-        ?int $id, string $nombre, ?string $grupoMuscular, TipoRegistroEjercicio $tipoRegistro = TipoRegistroEjercicio::PESO_REPETICIONES)
+        ?int $id, string $nombre, ?string $grupoMuscular, TipoRegistroEjercicio $tipoRegistro = TipoRegistroEjercicio::PESO_REPETICIONES, array $seriesObjetivo = [])
     {
         if ($grupoMuscular === '') {
             throw new InvalidArgumentException("El grupo muscular de '$nombre' no puede estar vacío.");
@@ -22,6 +24,12 @@ class Ejercicio
         $this->nombre = $nombre;
         $this->tipoRegistro = $tipoRegistro;
         $this->grupoMuscular = $grupoMuscular;
+        $this->seriesObjetivo = $seriesObjetivo;
+    }
+
+    public function agregarSerieObjetivo(SerieObjetivo $serie): void
+    {
+        $this->seriesObjetivo[] = $serie;
     }
 
     public function toArray(): array

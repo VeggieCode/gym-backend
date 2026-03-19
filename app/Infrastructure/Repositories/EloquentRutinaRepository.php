@@ -6,6 +6,7 @@ use App\Domain\Entities\Rutina as DomainRutina;
 use App\Domain\Entities\Ejercicio as DomainEjercicio;
 use App\Domain\Enums\TipoRegistroEjercicio;
 use App\Domain\Repositories\RutinaRepositoryInterface;
+use App\Domain\ValueObjects\SerieObjetivo;
 use App\Infrastructure\Mappers\RutinaMapper;
 use App\Models\Rutina as EloquentRutina;
 use App\Models\Ejercicio as EloquentEjercicio;
@@ -51,15 +52,23 @@ class EloquentRutinaRepository implements RutinaRepositoryInterface
                     ]
                 );
 
+                $seriesArray = array_map(function(SerieObjetivo $serie) {
+                    return [
+                        'peso' => $serie->peso,
+                        'repeticiones' => $serie->repeticiones,
+                        'tiempo_segundos' => $serie->tiempoSegundos,
+                        'distancia_metros' => $serie->distanciaMetros
+                    ];
+                }, $ejercicio->seriesObjetivo);
+
                 // Usamos el ID del catálogo (sea viejo o recién creado)
                 $pivotData[$modeloEjercicio->id] = [
-                  'orden' => $index
+                  'orden' => $index,
+                    'series_objetivo' => json_encode($seriesArray),
                 ];
             }
 
             // 3. Sincronizar (La magia de Eloquent)
-            // El método sync() borra los ejercicios viejos de la rutina y pone los nuevos,
-            // manteniendo nuestra base de datos perfectamente limpia y el catálogo intacto.
             $modeloRutina->ejercicios()->sync($pivotData);
 
             // 4. Actualizamos la entidad de dominio con su nuevo ID y la devolvemos
@@ -96,11 +105,24 @@ class EloquentRutinaRepository implements RutinaRepositoryInterface
         );
 
         foreach ($rutinaModel->ejercicios as $ejercicioModel) {
+            $seriesRaw = json_decode($ejercicioModel->pivot->series_objetivo, true) ?? [];
+
+            $seriesObjetivo = [];
+            foreach ($seriesRaw as $serieData) {
+                $seriesObjetivo[] = new SerieObjetivo(
+                    peso: $serieData['peso'] ?? null,
+                    repeticiones: $serieData['repeticiones'] ?? null,
+                    tiempoSegundos: $serieData['tiempo_segundos'] ?? null,
+                    distanciaMetros: $serieData['distancia_metros'] ?? null
+                );
+            }
+
             $rutinaDomain->agregarEjercicio(new DomainEjercicio(
                 id: $ejercicioModel->id,
                 nombre: $ejercicioModel->nombre,
                 grupoMuscular: $ejercicioModel->grupo_muscular,
-                tipoRegistro: $ejercicioModel->tipo_registro
+                tipoRegistro: $ejercicioModel->tipo_registro,
+                seriesObjetivo: $seriesObjetivo
             ));
         }
 
