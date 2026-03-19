@@ -38,8 +38,8 @@ class RutinaControllerTest extends TestCase
             "nombre" => "Hipertrofia Avanzada",
             "dias_asignados" => ["Lunes", "Jueves"],
             "ejercicios" => [
-                ["nombre" => "Press Militar", "grupo_muscular" => "Pecho"],
-                ["nombre" => "Elevaciones Laterales", "grupo_muscular" => "Pecho"]
+                ["nombre" => "Press Militar", "grupo_muscular" => "Pecho", "series_objetivo" => []],
+                ["nombre" => "Elevaciones Laterales", "grupo_muscular" => "Pecho", "series_objetivo" => []]
             ]
         ];
 
@@ -65,7 +65,7 @@ class RutinaControllerTest extends TestCase
     public function test_rechaza_crear_rutina_si_no_hay_sesion(): void
     {
         // NO llamamos a Sanctum::actingAs()
-        $payload = ["nombre" => "Secreta", "dias_asignados" => ["Lunes"], "ejercicios" => [["nombre" => "Press Militar", "series" => 4, "repeticiones" => 8],
+        $payload = ["nombre" => "Secreta", "dias_asignados" => ["Lunes"], "ejercicios" => [["nombre" => "Press Militar", "series_objetivo" => []],
             ["nombre" => "Elevaciones Laterales", "series" => 3, "repeticiones" => 15]]];
 
         $response = $this->postJson('/api/rutinas', $payload);
